@@ -1,0 +1,33 @@
+function moveOldRows() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sourceSheet = ss.getSheetByName('Form Responses 1');
+  var targetSheet = ss.getSheetByName('Archive');
+  var currentDate = new Date();
+  var oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 1); // is 1 days old (1 week)
+
+  var sourceData = sourceSheet.getDataRange().getValues();
+  var rowsToMove = [];
+  var rowsToDelete = [];
+
+  for (var i = 1; i < sourceData.length; i++) { // Start from 1 to skip header row
+    var dateValue = sourceData[i][14]; // O is the 15th column (index 14)
+    var checkboxValue = sourceData[i][20]; // V is the 22nd column (index 21)
+    if (dateValue instanceof Date && dateValue < oneWeekAgo && checkboxValue === true) {
+      rowsToMove.push(sourceData[i]);
+      rowsToDelete.push(i + 1); // 1 for header row
+    }
+  }
+
+  if (rowsToMove.length > 0) {
+    var targetStartRow = targetSheet.getLastRow() + 1;
+    var targetEndRow = targetStartRow + rowsToMove.length - 1;
+    var targetEndCol = sourceData[0].length;
+    targetSheet.getRange(targetStartRow, 1, rowsToMove.length, targetEndCol).setValues(rowsToMove);
+    targetSheet.getRange(targetStartRow, 1, rowsToMove.length, targetEndCol).copyFormatToRange(targetSheet, 1, targetEndCol, targetStartRow, targetEndRow);
+
+    rowsToDelete.reverse().forEach(function (rowIndex) {
+      sourceSheet.deleteRow(rowIndex);
+    });
+  }
+}
