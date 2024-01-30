@@ -1,0 +1,26 @@
+function moveOldRows() {
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  var sourceSheet = ss.getSheetByName('FormResponses');
+  var archiveSheet = ss.getSheetByName('Archive');  
+
+  function getDateToArchive() {
+    var oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    return oneDayAgo;  
+  }
+
+  var sourceData = sourceSheet.getDataRange().getValues();  
+
+  var rowsToMove = sourceData.filter(row => {
+    return row[14] < getDateToArchive() && row[20] === true; 
+  });
+  
+  var rowsToDelete = rowsToMove.map(row => sourceData.indexOf(row) + 1);  
+
+  archiveSheet.getRange(archiveSheet.getLastRow() + 1, 1, rowsToMove.length, rowsToMove[0].length).setValues(rowsToMove);
+
+  sourceSheet.deleteRows(rowsToDelete);
+
+}
