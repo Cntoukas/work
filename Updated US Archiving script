@@ -1,0 +1,63 @@
+function moveOldRows() {
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Add validation for sheet names
+  if (!ss.getSheetByName('Form Responses 1')) {
+    throw new Error('Source sheet "Form Responses 1" not found'); 
+  }
+  
+  if (!ss.getSheetByName('Archive')) {
+    throw new Error('Target sheet "Archive" not found');  
+  }
+
+  var sourceSheet = ss.getSheetByName('Form Responses 1');
+  var targetSheet = ss.getSheetByName('Archive');
+  
+  var currentDate = new Date();
+  var oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); 
+
+  var sourceData = sourceSheet.getDataRange().getValues();
+  
+  var rowsToMove = [];
+  var rowsToDelete = [];
+  
+  for (var i = 1; i < sourceData.length; i++) {
+    
+    var dateValue = sourceData[i][14]; 
+    var checkboxValue = sourceData[i][21];
+    
+    // Simplify date comparison
+    if (dateValue < oneWeekAgo) {
+    
+      // Compare checkbox value directly    
+      if (checkboxValue === true) {
+
+        rowsToMove.push(sourceData[i]);
+        rowsToDelete.push(i + 1); 
+      }
+    }
+  }
+  
+  if (rowsToMove.length > 0) {
+
+    // Use getLastRow()
+    var targetStartRow = targetSheet.getLastRow() + 1;  
+    var targetEndRow = targetStartRow + rowsToMove.length - 1;
+    
+    var targetEndCol = sourceData[0].length;
+    
+    targetSheet.getRange(targetStartRow, 1, rowsToMove.length, targetEndCol).setValues(rowsToMove);
+    
+    targetSheet.getRange(targetStartRow, 1, rowsToMove.length, targetEndCol).copyFormatToRange(targetSheet, 1, targetEndCol, targetStartRow, targetEndRow);
+    
+    rowsToDelete.reverse().forEach(function(rowIndex) {
+      sourceSheet.deleteRow(rowIndex);
+    });
+    
+    // Log number of rows moved
+    Logger.log(`Moved ${rowsToMove.length} rows`);
+  }
+  
+}
