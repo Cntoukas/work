@@ -1,0 +1,16 @@
+function onEdit(e) {
+  var sheet = e.range.getSheet();
+  var editedColumn = e.range.getColumn();
+  var editedValue = e.value;
+  
+  // Check if the edited column is H (8) and if the sheet is one of the specified tabs
+  if (editedColumn === 8 && (sheet.getName() === 'Morrison Hill - Hong Kong' || sheet.getName() === 'Red House - Singapore' || sheet.getName() === 'Publika - Malaysia')) {
+    var targetRow = e.range.getRow();
+    var dateCell = sheet.getRange(targetRow, 9); // Column I
+    
+    if (dateCell.getValue() === "") {
+      var currentDate = new Date();
+      dateCell.setValue(currentDate);
+    }
+  }
+}
